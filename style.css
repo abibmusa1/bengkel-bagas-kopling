@@ -1,14 +1,14 @@
 body {
     background-color: rgb(59, 184, 226)
     font family: Arial, sans-serif; 
-    color: #FF8CDB;
+    color: FF8CDB;
 }
 
 .kartu-profil {
     width: 300px;
     margin: 50px auto;
     padding: 20px;
-    background-color: white;
+    background-color: rgb(107, 144, 255);
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0,1);
 }
@@ -18,5 +18,4 @@ body {
     width: 150px;
     border-radius: 50%;
 }
-
 
