@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulasi CBT - Keamanan Ekstra</title>
+    <title>Simulasi CBT - Token & Keamanan Ekstra</title>
     <style>
         /* Mencegah seleksi teks dan copy-paste di seluruh halaman */
         body { 
@@ -18,7 +18,7 @@
             -ms-user-select: none; /* IE/Edge */
         }
         
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
         
         #konten-ujian { display: none; }
         
@@ -26,29 +26,38 @@
         .slide-soal { display: none; text-align: left; margin-bottom: 20px; }
         .slide-soal.aktif { display: block; } 
         
-        /* Gaya Tombol */
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; margin: 5px; }
+        /* Gaya Input & Tombol */
+        input[type="text"] { padding: 10px; font-size: 16px; width: 80%; max-width: 250px; text-align: center; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; margin: 10px 5px; font-weight: bold; }
         button:hover { background: #0056b3; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         .btn-selesai { background: #28a745; }
         .btn-selesai:hover { background: #218838; }
 
-        /* Peringatan Pelanggaran */
+        /* Peringatan */
         #banner-peringatan { display: none; background: #dc3545; color: white; padding: 10px; font-weight: bold; margin-bottom: 15px; border-radius: 5px; }
+        #error-token { color: red; font-size: 14px; display: none; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Layar Awal -->
+        <!-- Layar Awal (Login / Token) -->
         <div id="layar-mulai">
             <h2>Persiapan Ujian</h2>
             <p>Ujian ini mewajibkan mode layar penuh (Full Screen).</p>
-            <p style="color: red; font-size: 14px;">(Klik kanan, copy-paste, dan screenshot dilarang)</p>
-            <button onclick="mulaiUjian()">Mulai Ujian</button>
+            <p style="color: red; font-size: 14px; margin-bottom: 25px;">(Klik kanan, copy-paste, dan screenshot dilarang)</p>
+            
+            <div style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <label for="input-token" style="display: block; margin-bottom: 10px; font-weight: bold;">Masukkan Token Ujian:</label>
+                <input type="text" id="input-token" placeholder="Contoh: CBT123">
+                <p id="error-token">Token salah! Silakan periksa kembali.</p>
+            </div>
+
+            <button onclick="validasiToken()">Mulai Ujian & Masuk Full Screen</button>
         </div>
 
-        <!-- Konten Ujian -->
+        <!-- Konten Ujian (Muncul setelah Token Benar) -->
         <div id="konten-ujian">
             <div id="banner-peringatan">⚠ PERINGATAN: Anda terdeteksi membuka aplikasi/layar lain! ⚠</div>
             <p style="text-align: right; font-size: 14px; color: gray;">Status: <strong id="status-layar" style="color: green;">FOKUS</strong></p>
@@ -89,7 +98,25 @@
         const elem = document.documentElement;
         let soalSekarang = 1;
         const totalSoal = 2;
+        
+        // --- PENGATURAN TOKEN ---
+        const TOKEN_BENAR = "CBT123"; // Anda bisa mengubah token di sini
 
+        // 1. Validasi Token & Masuk Full Screen
+        function validasiToken() {
+            const inputElement = document.getElementById("input-token");
+            const nilaiInput = inputElement.value.trim().toUpperCase(); // Mengubah input jadi huruf besar semua
+            const pesanError = document.getElementById("error-token");
+
+            if (nilaiInput === TOKEN_BENAR) {
+                pesanError.style.display = "none";
+                mulaiUjian(); // Jika benar, jalankan fungsi full screen
+            } else {
+                pesanError.style.display = "block"; // Jika salah, tampilkan pesan error
+            }
+        }
+
+        // 2. Fungsi Full Screen (Dipanggil setelah token benar)
         function mulaiUjian() {
             if (elem.requestFullscreen) {
                 elem.requestFullscreen();
@@ -98,10 +125,13 @@
             } else if (elem.msRequestFullscreen) {
                 elem.msRequestFullscreen();
             }
+            
+            // Sembunyikan layar token, tampilkan ujian
             document.getElementById("layar-mulai").style.display = "none";
             document.getElementById("konten-ujian").style.display = "block";
         }
 
+        // --- SISTEM KEAMANAN ---
         function aturPeringatan(melanggar) {
             const banner = document.getElementById("banner-peringatan");
             const status = document.getElementById("status-layar");
@@ -117,46 +147,24 @@
             }
         }
 
-        // 1. Deteksi Blur (Alt+Tab, Notifikasi diklik)
-        window.onblur = function() { 
-            aturPeringatan(true); 
-        };
-        
-        window.onfocus = function() { 
-            aturPeringatan(false); 
-        };
+        window.onblur = function() { aturPeringatan(true); };
+        window.onfocus = function() { aturPeringatan(false); };
 
-        // 2. Deteksi Keluar Full Screen (Tombol ESC / Back)
         document.addEventListener("fullscreenchange", function() {
-            if (!document.fullscreenElement) {
-                aturPeringatan(true);
-            }
+            if (!document.fullscreenElement) { aturPeringatan(true); }
         });
 
-        // 3. TAMBAHAN: Visibility API (Mendeteksi jika ada layar mengambang menutupi browser)
         document.addEventListener("visibilitychange", function() {
-            if (document.hidden) {
-                aturPeringatan(true);
-                console.log("Log: Tab tertutup atau tertimpa aplikasi lain.");
-            } else {
-                aturPeringatan(false);
-            }
+            if (document.hidden) { aturPeringatan(true); } else { aturPeringatan(false); }
         });
 
-        // 4. TAMBAHAN: Blokir Klik Kanan (Context Menu)
-        document.addEventListener("contextmenu", function(e) {
-            e.preventDefault();
-        });
+        document.addEventListener("contextmenu", function(e) { e.preventDefault(); });
 
-        // 5. TAMBAHAN: Blokir Keyboard Shortcut (Copy, Paste, dll)
         document.addEventListener("keydown", function(e) {
-            // Blokir Ctrl+C, Ctrl+V, Ctrl+X
-            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
-                e.preventDefault();
-            }
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) { e.preventDefault(); }
         });
 
-        // Logika Navigasi Soal
+        // --- LOGIKA NAVIGASI SOAL ---
         function gantiSoal(arah) {
             document.getElementById("soal-" + soalSekarang).classList.remove("aktif");
             soalSekarang += arah;
@@ -178,4 +186,3 @@
     </script>
 </body>
 </html>
-
