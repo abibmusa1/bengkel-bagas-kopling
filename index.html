@@ -3,14 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <title>Simulasi Sensor CBT</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #konten-ujian { display: none; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <h2>Simulasi Deteksi Fokus Layar</h2>
-    <p>Status: <strong id="status-layar" style="color: green;">FOKUS (Aman)</strong></p>
-    <p>Coba buka tab baru, minimalkan jendela ini, atau buka aplikasi lain.</p>
+
+    <!-- Layar Awal sebelum Fullscreen -->
+    <div id="layar-mulai">
+        <h2>Persiapan Ujian</h2>
+        <p>Ujian ini mewajibkan mode layar penuh (Full Screen).</p>
+        <button onclick="mulaiUjian()">Mulai Ujian</button>
+    </div>
+
+    <!-- Konten Ujian (Muncul setelah tombol diklik) -->
+    <div id="konten-ujian">
+        <h2>Simulasi Deteksi Fokus Layar</h2>
+        <p>Status: <strong id="status-layar" style="color: green;">FOKUS (Aman)</strong></p>
+        <p>Coba buka tab baru, minimalkan jendela ini, tekan tombol Windows, atau tekan ESC.</p>
+    </div>
 
     <script>
-        // Logika dasar yang digunakan developer CBT untuk mendeteksi kecurangan
+        const elem = document.documentElement;
+
+        // Fungsi untuk masuk ke Full Screen
+        function mulaiUjian() {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+
+            // Sembunyikan tombol mulai, tampilkan konten ujian
+            document.getElementById("layar-mulai").style.display = "none";
+            document.getElementById("konten-ujian").style.display = "block";
+        }
+
+        // Deteksi jika pengguna pindah tab / aplikasi (Alt+Tab, klik di luar)
         window.onblur = function() {
             document.getElementById("status-layar").innerText = "TIDAK FOKUS (Peringatan!)";
             document.getElementById("status-layar").style.color = "red";
@@ -21,6 +54,19 @@
             document.getElementById("status-layar").innerText = "FOKUS (Aman)";
             document.getElementById("status-layar").style.color = "green";
         };
+
+        // Tambahan: Deteksi jika pengguna keluar dari mode Full Screen (misal: menekan ESC)
+        document.addEventListener("fullscreenchange", function() {
+            if (!document.fullscreenElement) {
+                document.getElementById("status-layar").innerText = "PELANGGARAN (Keluar dari Full Screen!)";
+                document.getElementById("status-layar").style.color = "red";
+                console.log("Log ke server: Peserta keluar dari mode full screen.");
+                
+                // Opsional: Sembunyikan soal jika keluar full screen
+                // document.getElementById("konten-ujian").style.display = "none";
+                // document.getElementById("layar-mulai").style.display = "block";
+            }
+        });
     </script>
 </body>
 </html>
