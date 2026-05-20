@@ -3,30 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulasi CBT - Token & Keamanan Ekstra</title>
+    <title>Simulasi CBT - Strict Mode</title>
     <style>
-        /* Mencegah seleksi teks dan copy-paste di seluruh halaman */
         body { 
             font-family: Arial, sans-serif; 
             text-align: center; 
             margin: 0; 
             padding: 20px; 
             background-color: #f4f4f4;
-            user-select: none; /* Standar */
-            -webkit-user-select: none; /* Safari/Chrome */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE/Edge */
+            user-select: none;
+            -webkit-user-select: none;
         }
         
         .container { max-width: 600px; margin: auto; background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
         
         #konten-ujian { display: none; }
-        
-        /* Gaya untuk Slide Soal */
         .slide-soal { display: none; text-align: left; margin-bottom: 20px; }
         .slide-soal.aktif { display: block; } 
         
-        /* Gaya Input & Tombol */
         input[type="text"] { padding: 10px; font-size: 16px; width: 80%; max-width: 250px; text-align: center; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; margin: 10px 5px; font-weight: bold; }
         button:hover { background: #0056b3; }
@@ -34,8 +28,6 @@
         .btn-selesai { background: #28a745; }
         .btn-selesai:hover { background: #218838; }
 
-        /* Peringatan */
-        #banner-peringatan { display: none; background: #dc3545; color: white; padding: 10px; font-weight: bold; margin-bottom: 15px; border-radius: 5px; }
         #error-token { color: red; font-size: 14px; display: none; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
@@ -46,7 +38,7 @@
         <div id="layar-mulai">
             <h2>Persiapan Ujian</h2>
             <p>Ujian ini mewajibkan mode layar penuh (Full Screen).</p>
-            <p style="color: red; font-size: 14px; margin-bottom: 25px;">(Klik kanan, copy-paste, dan screenshot dilarang)</p>
+            <p style="color: red; font-size: 14px; margin-bottom: 25px;">(Membuka notifikasi atau keluar aplikasi akan mengulang sesi ujian)</p>
             
             <div style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
                 <label for="input-token" style="display: block; margin-bottom: 10px; font-weight: bold;">Masukkan Token Ujian:</label>
@@ -54,17 +46,14 @@
                 <p id="error-token">Token salah! Silakan periksa kembali.</p>
             </div>
 
-            <button onclick="validasiToken()">Mulai Ujian & Masuk Full Screen</button>
+            <button onclick="validasiToken()">Mulai Ujian</button>
         </div>
 
-        <!-- Konten Ujian (Muncul setelah Token Benar) -->
+        <!-- Konten Ujian -->
         <div id="konten-ujian">
-            <div id="banner-peringatan">⚠ PERINGATAN: Anda terdeteksi membuka aplikasi/layar lain! ⚠</div>
-            <p style="text-align: right; font-size: 14px; color: gray;">Status: <strong id="status-layar" style="color: green;">FOKUS</strong></p>
-            
+            <p style="text-align: right; font-size: 14px; color: gray;">Status: <strong style="color: green;">SEDANG UJIAN</strong></p>
             <hr>
 
-            <!-- Slide Soal 1 -->
             <div id="soal-1" class="slide-soal aktif">
                 <h3>Soal 1 dari 2</h3>
                 <p>Apa ibukota negara Indonesia saat ini?</p>
@@ -74,7 +63,6 @@
                 <label><input type="radio" name="jawaban1" value="D"> D. Nusantara</label><br>
             </div>
 
-            <!-- Slide Soal 2 -->
             <div id="soal-2" class="slide-soal">
                 <h3>Soal 2 dari 2</h3>
                 <p>Berapa hasil perhitungan dari 5 + 7?</p>
@@ -86,7 +74,6 @@
 
             <hr>
             
-            <!-- Navigasi -->
             <div>
                 <button id="btn-prev" onclick="gantiSoal(-1)" disabled>⬅ Sebelumnya</button>
                 <button id="btn-next" onclick="gantiSoal(1)">Selanjutnya ➡</button>
@@ -98,25 +85,23 @@
         const elem = document.documentElement;
         let soalSekarang = 1;
         const totalSoal = 2;
+        let sedangUjian = false; // Penanda apakah ujian sedang berlangsung
         
-        // --- PENGATURAN TOKEN ---
-        const TOKEN_BENAR = "CBT123"; // Anda bisa mengubah token di sini
+        const TOKEN_BENAR = "CBT123";
 
-        // 1. Validasi Token & Masuk Full Screen
         function validasiToken() {
-            const inputElement = document.getElementById("input-token");
-            const nilaiInput = inputElement.value.trim().toUpperCase(); // Mengubah input jadi huruf besar semua
+            const nilaiInput = document.getElementById("input-token").value.trim().toUpperCase();
             const pesanError = document.getElementById("error-token");
 
             if (nilaiInput === TOKEN_BENAR) {
                 pesanError.style.display = "none";
-                mulaiUjian(); // Jika benar, jalankan fungsi full screen
+                mulaiUjian();
             } else {
-                pesanError.style.display = "block"; // Jika salah, tampilkan pesan error
+                pesanError.innerText = "Token salah! Silakan periksa kembali.";
+                pesanError.style.display = "block";
             }
         }
 
-        // 2. Fungsi Full Screen (Dipanggil setelah token benar)
         function mulaiUjian() {
             if (elem.requestFullscreen) {
                 elem.requestFullscreen();
@@ -126,57 +111,76 @@
                 elem.msRequestFullscreen();
             }
             
-            // Sembunyikan layar token, tampilkan ujian
             document.getElementById("layar-mulai").style.display = "none";
             document.getElementById("konten-ujian").style.display = "block";
+            sedangUjian = true;
         }
 
-        // --- SISTEM KEAMANAN ---
-        function aturPeringatan(melanggar) {
-            const banner = document.getElementById("banner-peringatan");
-            const status = document.getElementById("status-layar");
+        // --- SISTEM TENDANG (KICK OUT) ---
+        function tendangPeserta() {
+            if (!sedangUjian) return; // Jangan tendang jika memang belum masuk ujian
+
+            sedangUjian = false;
             
-            if (melanggar) {
-                banner.style.display = "block";
-                status.innerText = "TIDAK FOKUS";
-                status.style.color = "red";
-            } else {
-                banner.style.display = "none";
-                status.innerText = "FOKUS";
-                status.style.color = "green";
+            // Tampilkan kembali layar token, sembunyikan ujian
+            document.getElementById("konten-ujian").style.display = "none";
+            document.getElementById("layar-mulai").style.display = "block";
+            
+            // Reset input token & tampilkan pesan pelanggaran
+            document.getElementById("input-token").value = "";
+            const pesanError = document.getElementById("error-token");
+            pesanError.innerText = "PELANGGARAN: Anda keluar layar atau membuka notifikasi! Silakan masukkan token lagi.";
+            pesanError.style.display = "block";
+
+            // Keluar dari fullscreen jika masih menyala
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(err => console.log(err));
             }
+
+            // Kembalikan ke Soal 1 (Reset view)
+            soalSekarang = 1;
+            document.querySelectorAll('.slide-soal').forEach(el => el.classList.remove('aktif'));
+            document.getElementById('soal-1').classList.add('aktif');
+            document.getElementById('btn-prev').disabled = true;
+
+            // Beri notifikasi popup
+            alert("Ujian Dihentikan!\n\nSistem mendeteksi Anda membuka notifikasi, menekan tombol Home, atau keluar dari layar penuh.");
         }
 
-        window.onblur = function() { aturPeringatan(true); };
-        window.onfocus = function() { aturPeringatan(false); };
+        // Trigger saat menarik bar notifikasi atau ganti tab (Blur)
+        window.onblur = function() { tendangPeserta(); };
 
-        document.addEventListener("fullscreenchange", function() {
-            if (!document.fullscreenElement) { aturPeringatan(true); }
-        });
-
+        // Trigger saat ada aplikasi melayang menimpa browser (Visibility)
         document.addEventListener("visibilitychange", function() {
-            if (document.hidden) { aturPeringatan(true); } else { aturPeringatan(false); }
+            if (document.hidden) { tendangPeserta(); }
         });
 
-        document.addEventListener("contextmenu", function(e) { e.preventDefault(); });
+        // Trigger saat peserta menekan tombol ESC/Back untuk keluar dari Full Screen
+        document.addEventListener("fullscreenchange", function() {
+            if (!document.fullscreenElement) { tendangPeserta(); }
+        });
 
+        // Anti klik kanan & copy-paste
+        document.addEventListener("contextmenu", function(e) { e.preventDefault(); });
         document.addEventListener("keydown", function(e) {
             if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) { e.preventDefault(); }
         });
 
-        // --- LOGIKA NAVIGASI SOAL ---
+        // Navigasi Soal
         function gantiSoal(arah) {
             document.getElementById("soal-" + soalSekarang).classList.remove("aktif");
             soalSekarang += arah;
             document.getElementById("soal-" + soalSekarang).classList.add("aktif");
-
             document.getElementById("btn-prev").disabled = (soalSekarang === 1);
 
             const btnNext = document.getElementById("btn-next");
             if (soalSekarang === totalSoal) {
                 btnNext.innerText = "Selesai Ujian ✔";
                 btnNext.classList.add("btn-selesai");
-                btnNext.onclick = function() { alert("Simulasi Selesai! Semua jawaban telah dikirim."); };
+                btnNext.onclick = function() { 
+                    alert("Simulasi Selesai! Semua jawaban telah dikirim."); 
+                    sedangUjian = false;
+                };
             } else {
                 btnNext.innerText = "Selanjutnya ➡";
                 btnNext.classList.remove("btn-selesai");
@@ -186,3 +190,4 @@
     </script>
 </body>
 </html>
+
