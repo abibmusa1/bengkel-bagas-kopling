@@ -2,33 +2,82 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Simulasi Sensor CBT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi CBT - Keamanan & Slide</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f4f4;}
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        
         #konten-ujian { display: none; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        
+        /* Gaya untuk Slide Soal */
+        .slide-soal { display: none; text-align: left; margin-bottom: 20px; }
+        .slide-soal.aktif { display: block; } /* Hanya soal dengan class 'aktif' yang terlihat */
+        
+        /* Gaya Tombol */
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-selesai { background: #28a745; }
+        .btn-selesai:hover { background: #218838; }
+
+        /* Peringatan Pelanggaran */
+        #banner-peringatan { display: none; background: #dc3545; color: white; padding: 10px; font-weight: bold; margin-bottom: 15px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <!-- Layar Awal sebelum Fullscreen -->
-    <div id="layar-mulai">
-        <h2>Persiapan Ujian</h2>
-        <p>Ujian ini mewajibkan mode layar penuh (Full Screen).</p>
-        <button onclick="mulaiUjian()">Mulai Ujian</button>
-    </div>
+    <div class="container">
+        <!-- Layar Awal -->
+        <div id="layar-mulai">
+            <h2>Persiapan Ujian</h2>
+            <p>Ujian ini mewajibkan mode layar penuh (Full Screen).</p>
+            <button onclick="mulaiUjian()">Mulai Ujian</button>
+        </div>
 
-    <!-- Konten Ujian (Muncul setelah tombol diklik) -->
-    <div id="konten-ujian">
-        <h2>Simulasi Deteksi Fokus Layar</h2>
-        <p>Status: <strong id="status-layar" style="color: green;">FOKUS (Aman)</strong></p>
-        <p>Coba buka tab baru, minimalkan jendela ini, tekan tombol Windows, atau tekan ESC.</p>
+        <!-- Konten Ujian -->
+        <div id="konten-ujian">
+            <div id="banner-peringatan">⚠ PERINGATAN: Anda terdeteksi keluar dari area ujian! ⚠</div>
+            <p style="text-align: right; font-size: 14px; color: gray;">Status: <strong id="status-layar" style="color: green;">FOKUS</strong></p>
+            
+            <hr>
+
+            <!-- Slide Soal 1 -->
+            <div id="soal-1" class="slide-soal aktif">
+                <h3>Soal 1 dari 2</h3>
+                <p>Apa ibukota negara Indonesia saat ini?</p>
+                <label><input type="radio" name="jawaban1" value="A"> A. Jakarta</label><br>
+                <label><input type="radio" name="jawaban1" value="B"> B. Bandung</label><br>
+                <label><input type="radio" name="jawaban1" value="C"> C. Surabaya</label><br>
+                <label><input type="radio" name="jawaban1" value="D"> D. Nusantara</label><br>
+            </div>
+
+            <!-- Slide Soal 2 -->
+            <div id="soal-2" class="slide-soal">
+                <h3>Soal 2 dari 2</h3>
+                <p>Berapa hasil perhitungan dari 5 + 7?</p>
+                <label><input type="radio" name="jawaban2" value="A"> A. 10</label><br>
+                <label><input type="radio" name="jawaban2" value="B"> B. 11</label><br>
+                <label><input type="radio" name="jawaban2" value="C"> C. 12</label><br>
+                <label><input type="radio" name="jawaban2" value="D"> D. 13</label><br>
+            </div>
+
+            <hr>
+            
+            <!-- Navigasi -->
+            <div>
+                <button id="btn-prev" onclick="gantiSoal(-1)" disabled>⬅ Sebelumnya</button>
+                <button id="btn-next" onclick="gantiSoal(1)">Selanjutnya ➡</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const elem = document.documentElement;
+        let soalSekarang = 1;
+        const totalSoal = 2;
 
-        // Fungsi untuk masuk ke Full Screen
+        // --- 1. LOGIKA FULL SCREEN & KEAMANAN ---
         function mulaiUjian() {
             if (elem.requestFullscreen) {
                 elem.requestFullscreen();
@@ -38,35 +87,73 @@
                 elem.msRequestFullscreen();
             }
 
-            // Sembunyikan tombol mulai, tampilkan konten ujian
+            // Sembunyikan menu mulai, tampilkan soal
             document.getElementById("layar-mulai").style.display = "none";
             document.getElementById("konten-ujian").style.display = "block";
         }
 
-        // Deteksi jika pengguna pindah tab / aplikasi (Alt+Tab, klik di luar)
-        window.onblur = function() {
-            document.getElementById("status-layar").innerText = "TIDAK FOKUS (Peringatan!)";
-            document.getElementById("status-layar").style.color = "red";
-            console.log("Log ke server: Peserta terdeteksi keluar dari layar.");
+        // Fungsi untuk mengelola tampilan peringatan
+        function aturPeringatan(melanggar) {
+            const banner = document.getElementById("banner-peringatan");
+            const status = document.getElementById("status-layar");
+            
+            if (melanggar) {
+                banner.style.display = "block";
+                status.innerText = "TIDAK FOKUS";
+                status.style.color = "red";
+            } else {
+                banner.style.display = "none";
+                status.innerText = "FOKUS";
+                status.style.color = "green";
+            }
+        }
+
+        // Deteksi Alt+Tab atau buka aplikasi lain
+        window.onblur = function() { 
+            aturPeringatan(true); 
+            console.log("Sistem mendeteksi perpindahan tab/aplikasi."); 
+        };
+        
+        // Kembalikan status saat kembali ke ujian
+        window.onfocus = function() { 
+            aturPeringatan(false); 
         };
 
-        window.onfocus = function() {
-            document.getElementById("status-layar").innerText = "FOKUS (Aman)";
-            document.getElementById("status-layar").style.color = "green";
-        };
-
-        // Tambahan: Deteksi jika pengguna keluar dari mode Full Screen (misal: menekan ESC)
+        // Deteksi tombol ESC (Keluar dari Full Screen)
         document.addEventListener("fullscreenchange", function() {
             if (!document.fullscreenElement) {
-                document.getElementById("status-layar").innerText = "PELANGGARAN (Keluar dari Full Screen!)";
-                document.getElementById("status-layar").style.color = "red";
-                console.log("Log ke server: Peserta keluar dari mode full screen.");
-                
-                // Opsional: Sembunyikan soal jika keluar full screen
-                // document.getElementById("konten-ujian").style.display = "none";
-                // document.getElementById("layar-mulai").style.display = "block";
+                aturPeringatan(true);
+                console.log("Sistem mendeteksi keluar dari mode Full Screen.");
             }
         });
+
+        // --- 2. LOGIKA NAVIGASI SLIDE SOAL ---
+        function gantiSoal(arah) {
+            // Hilangkan class 'aktif' dari soal saat ini agar disembunyikan
+            document.getElementById("soal-" + soalSekarang).classList.remove("aktif");
+            
+            // Pindah indeks soal
+            soalSekarang += arah;
+
+            // Tambahkan class 'aktif' ke soal yang baru agar ditampilkan
+            document.getElementById("soal-" + soalSekarang).classList.add("aktif");
+
+            // Kunci tombol "Sebelumnya" jika berada di soal pertama
+            document.getElementById("btn-prev").disabled = (soalSekarang === 1);
+
+            // Ubah tombol "Selanjutnya" menjadi "Selesai" jika di soal terakhir
+            const btnNext = document.getElementById("btn-next");
+            if (soalSekarang === totalSoal) {
+                btnNext.innerText = "Selesai Ujian ✔";
+                btnNext.classList.add("btn-selesai");
+                btnNext.onclick = function() { alert("Simulasi Selesai! Semua jawaban telah dikirim."); };
+            } else {
+                btnNext.innerText = "Selanjutnya ➡";
+                btnNext.classList.remove("btn-selesai");
+                // Kembalikan fungsi tombol menjadi pindah slide
+                btnNext.onclick = function() { gantiSoal(1); };
+            }
+        }
     </script>
 </body>
 </html>
