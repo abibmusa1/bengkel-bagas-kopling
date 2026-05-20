@@ -2,27 +2,25 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Saya - Abib</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Simulasi Sensor CBT</title>
 </head>
 <body>
-    <div class="profil-saya">
-        <div class="kartu-profil">
-            <img src="abib 2.jpeg" alt="Foto Profil Abib">
-            <h1>Abib Musa Chris Wardana</h1>
-            <p>Ngapain ke website saya, kepo kamu ya?? 😄</p>
-            <a href="https://www.instagram.com/wardvnkid" target="_blank">Follow Instagram Saya</a>
-            <br><br>
-            <button id="sapaButton">DM Instagram Saya</button>
-        </div>
-    </div>
+    <h2>Simulasi Deteksi Fokus Layar</h2>
+    <p>Status: <strong id="status-layar" style="color: green;">FOKUS (Aman)</strong></p>
+    <p>Coba buka tab baru, minimalkan jendela ini, atau buka aplikasi lain.</p>
 
-    <script src="script.js"></script>
+    <script>
+        // Logika dasar yang digunakan developer CBT untuk mendeteksi kecurangan
+        window.onblur = function() {
+            document.getElementById("status-layar").innerText = "TIDAK FOKUS (Peringatan!)";
+            document.getElementById("status-layar").style.color = "red";
+            console.log("Log ke server: Peserta terdeteksi keluar dari layar.");
+        };
+
+        window.onfocus = function() {
+            document.getElementById("status-layar").innerText = "FOKUS (Aman)";
+            document.getElementById("status-layar").style.color = "green";
+        };
+    </script>
 </body>
 </html>
-
-</html>
-
-
-
